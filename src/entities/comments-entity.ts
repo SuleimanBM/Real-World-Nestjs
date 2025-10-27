@@ -18,9 +18,9 @@ export class Comment extends CustomBaseEntity {
         return {
             id: this.id,
             author: this.author,
-            article: this.article.title,
             body: this.body,
-            createdAt: this.createdAt
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt
         }
     }
 }

@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Injectable, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
-import { ArticleDto, UpdateArticleDto } from "src/dtos/article.dto";
-import { CommentDto } from "src/dtos/comment.dto";
+import { CommentDto, CommentInput } from "src/dtos/comment.dto";
 import { GetArticlesQueryDto } from "src/dtos/getArticlesQuery.dto";
 import { JwtGuard } from "src/guards/jwt.guard";
 import { ArticleService } from "src/services/article.service";
@@ -13,8 +12,8 @@ export class CommentController {
     constructor(private commentService: CommentService) { }
 
     @Post(":slug")
-    createComment(@Param('slug') slug: string, @Body() commentDto: CommentDto) {
-        return this.commentService.createComment(slug, commentDto);
+    createComment(@Param('slug') slug: string, @Body() commentDto: CommentInput) {
+        return this.commentService.addComment(slug, commentDto);
     }
 
     @Get(":slug")

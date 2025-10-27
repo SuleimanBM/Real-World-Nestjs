@@ -14,7 +14,7 @@ export class ProfileController {
 
     @Get(":username")
     fetchProfile(@Param("username") username: string) {
-        console.log("Request hitting controller and username is ", username);
+        //console.log("Request hitting controller and username is ", username);
         return this.profileService.fetchProfile(username)
     }
 

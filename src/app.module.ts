@@ -26,7 +26,7 @@ import { CommentService } from './services/comment.service';
     RequestContextModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: {expiresIn: "1h"}
+      signOptions: {expiresIn: "24h"}
     })
   ],
   controllers: [AppController, UserController, ArticleController,ProfileController,CommentController],

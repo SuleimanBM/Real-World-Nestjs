@@ -1,12 +1,12 @@
 import { EntityManager } from "@mikro-orm/postgresql";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { LoginDto } from "src/dtos/login.dto";
-import { RegisterDto } from "src/dtos/register.dto";
+import { LoginDto, LoginUserInput } from "src/dtos/login.dto";
+import { RegisterUserInput } from "src/dtos/register.dto";
 import { User } from "src/entities/user-entity";
 import bcrypt from "bcrypt"
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import {HttpContext} from "src/misc/context"
+import { HttpContext } from "src/misc/context"
 import { UpdateUserDto, UserDto } from "src/dtos/user.dto";
 
 @Injectable()
@@ -15,22 +15,33 @@ export class UserService {
         private em: EntityManager,
         private jwtService: JwtService,
     ) { }
-    
-    
-    async registerUser(registerDto: RegisterDto) {
-        const userExists = await this.em.findOne(User, { email: registerDto.email })
+
+
+    async registerUser(registerDto: RegisterUserInput) {
+        const userInput = registerDto.user
+
+        //console.log("userInput from userService ", userInput)
+
+        const userExists = await this.em.findOne(User, { email: userInput.email })
 
         if (userExists) {
             throw new BadRequestException("User already exists");
         }
-        console.log("logging user from user services", registerDto);
-        const hashedPassword = await bcrypt.hash(registerDto.password, 10)
-        const user = this.em.create(User, {...registerDto,password: hashedPassword });
-        await this.em.flush()
-        return user;
-     }
+        //console.log("logging user from user services", userInput);
 
-    async loginUser(loginDto: LoginDto) { 
+        const hashedPassword = await bcrypt.hash(userInput.password, 10)
+
+        const user = this.em.create(User, { ...userInput, password: hashedPassword });
+
+        await this.em.flush()
+
+        const token = await this.jwtService.sign({ id: user.id, username: user.username })
+
+        return {user:{ ...user.toDto(), token }};
+    }
+
+    async loginUser(input: LoginUserInput) {
+        const loginDto = input.user
         const user = await this.em.findOne(User, { email: loginDto.email })
 
         if (!user) {
@@ -41,15 +52,15 @@ export class UserService {
             throw new BadRequestException("Invalid credentials");
         }
         const token = await this.jwtService.sign({ id: user.id, username: user.username })
-        
-        return {...user.toDto(), token}
+
+        return { user: { ...user.toDto(), token } };
     }
 
     async getUser() {
         const currentUser = HttpContext.get().req.user;
 
         const user = await this.em.findOne(User, { id: currentUser.id })
-        return user?.toDto()
+        return {user: user?.toDto()}
     }
 
     async updateUser(userDto: UpdateUserDto) {

@@ -7,3 +7,7 @@ export class CommentDto {
 
     
 }
+
+export class CommentInput {
+    comment: CommentDto;
+}

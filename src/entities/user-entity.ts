@@ -16,7 +16,7 @@ export class User extends CustomBaseEntity {
     bio?: string
 
     @Property({ nullable: true })
-    image?: string
+    image?: string = "https://i.pravatar.cc/150"
 
     toDto() {
         return {

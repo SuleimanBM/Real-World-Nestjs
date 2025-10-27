@@ -1,9 +1,15 @@
 import { IsEmail, IsNotEmpty, Length } from "class-validator"
 import { PartialType } from '@nestjs/mapped-types';
+import { RegisterDto } from "./register.dto";
+
+// export class RegisterUserInput {
+//     user: RegisterDto;
+// }
 
 
-export class UserDto{
-    @Length(3,25)
+export class UserDto {
+
+    @Length(3, 25)
     username: string;
 
     @IsEmail()
@@ -19,4 +25,4 @@ export class UserDto{
     image: string;
 }
 
-export class UpdateUserDto extends PartialType(UserDto){}
+export class UpdateUserDto extends PartialType(UserDto) { }
