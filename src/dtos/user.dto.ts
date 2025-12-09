@@ -10,19 +10,21 @@ import { RegisterDto } from "./register.dto";
 export class UserDto {
 
     @Length(3, 25)
-    username: string;
+    username?: string;
 
     @IsEmail()
-    email: string;
+    email?: string;
 
     @Length(8)
-    password: string;
+    password?: string;
 
     @IsNotEmpty()
-    bio: string;
+    bio?: string;
 
     @IsNotEmpty()
-    image: string;
+    image?: string;
 }
 
-export class UpdateUserDto extends PartialType(UserDto) { }
+export class UpdateUserInput {
+    user: UserDto;
+}

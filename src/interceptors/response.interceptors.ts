@@ -6,16 +6,14 @@ import { map, Observable, of, tap, timeout } from "rxjs";
 export class ResponseInterceptor implements NestInterceptor {
     intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
         const start = new Date().getTime();
-        //console.log(`Request has hit the endpoint at ${start}`);
-        console.log("Request hitting the server", context.switchToHttp().getRequest().url)
+         console.log("Request hitting the server", context.switchToHttp().getRequest().method, context.switchToHttp().getRequest().url)
+        // console.log("Request hitting the server", context.switchToHttp().getRequest().headers)
+        // console.log("Request hitting the server", context.switchToHttp().getRequest().method)
 
         return next.handle().
             pipe(
                 tap((data) => {
-                    const timetaken = new Date().getTime() - start;
-                    //console.log(`Some side effects like logging how long the response took. This one took ${timetaken}ms`);
-                    console.log("Logging response status code ", context.switchToHttp().getResponse().statusCode)
-                    console.log("Logging data from response ", data)
+                    const timetaken = new Date().getTime() - start;                
                 }
                 ),
                 timeout(5000),

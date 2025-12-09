@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, HttpCode, Injectable, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
-import { ArticleDto, UpdateArticleInput } from "src/dtos/article.dto";
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth } from "@nestjs/swagger";
 import { ArticleInput } from "src/dtos/articleInput";
+import { UpdateArticleInput } from "src/dtos/articleUpdateInput.dto";
 import { CommentInput } from "src/dtos/comment.dto";
 import { GetArticlesQueryDto } from "src/dtos/getArticlesQuery.dto";
 import { JwtGuard } from "src/guards/jwt.guard";
@@ -9,10 +10,11 @@ import { CommentService } from "src/services/comment.service";
 
 
 @Controller("articles")
+@ApiBearerAuth()
 export class ArticleController {
     constructor(private articleService: ArticleService, private commentService: CommentService) { }
 
-    @UseGuards(JwtGuard)
+   // @UseGuards(JwtGuard)
     @Get()
     articles(@Query() query: GetArticlesQueryDto) {
         return this.articleService.getAllArticles(query)
@@ -40,7 +42,7 @@ export class ArticleController {
     @UseGuards(JwtGuard)
     @Post()
     postArticles(@Body() articleInput: ArticleInput) {
-        //console.log("post article route has been hit with data", articleInput)
+        console.log(articleInput)
         return this.articleService.createArticle(articleInput)
     }
 
@@ -75,11 +77,18 @@ export class ArticleController {
     deleteComment(@Param('slug') slug: string, @Param('id') commentId: string) {
         return this.commentService.deleteComment(slug, commentId);
     }
-    
+
     @UseGuards(JwtGuard)
     @Post(":slug/favorite")
     favoriteArticle(@Param('slug') slug: string,) {
         return this.articleService.favoriteArticle(slug)
+    }
+
+    @UseGuards(JwtGuard)
+    @Delete(":slug/favorite")
+    unFavoriteArticle(@Param('slug') slug: string,) {
+        console.log("unfavoriting article")
+        return this.articleService.unFavoriteArticle(slug)
     }
 
 

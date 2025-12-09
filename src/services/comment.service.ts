@@ -1,5 +1,5 @@
-import { EntityManager } from "@mikro-orm/core";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { EntityManager } from "@mikro-orm/postgresql";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { CommentDto, CommentInput } from "src/dtos/comment.dto";
 import { Article } from "src/entities/article-entity";
 import { Comment } from "src/entities/comments-entity";
@@ -14,24 +14,25 @@ export class CommentService {
         private em: EntityManager,
         private profileService: ProfileService
     ) { }
+        private readonly logger = new Logger(CommentService.name)
+    
 
     async addComment(slug: string, commentInput: CommentInput) {
         const commentDto = commentInput.comment
+
         const currentUser = HttpContext.get().req.user;
-        console.log("Logging current user", currentUser);
-        //console.log("Logging of current user", currentUser.id)
 
         const article = await this.em.findOne(Article, {slug}, {populate: ["author"] as any})
         
         if (!article) throw new NotFoundException("Article does not exists")
-        console.log("Logging article fetched from adding comment", article)
         
         const profile = await this.profileService.fetchProfile(article.author.username)
 
-        const comment = this.em.create(Comment, { ...commentDto, article: article.id, author: currentUser.id },)
+        const comment = await this.em.create(Comment, { ...commentDto, article: article.id, author: currentUser.id },)
+        
         await this.em.flush()
-        console.log("Logging comment from addComment", comment)
-        return {comment: {...comment.toDto(), author: profile?.profile}}
+
+        return { comment: { ...comment.toDto(), author: profile?.profile } }
     }
 
     async fetchComments(slug: string) {
@@ -41,11 +42,11 @@ export class CommentService {
 
         if (!article) throw new NotFoundException("User does not exists")
 
-        const allComments = await this.em.find(Comment, {article: article.id }, {populate: ["author"] as any})
+        const allComments = await this.em.find(Comment, {article}, {populate: ["author"] as any})
 
         const comments = allComments.map(c => c.toDto() )
-        console.log("Logging comments form service", comments)
-        return {comments}
+
+        return { comments }
     }
     async deleteComment(slug: string, commentId: string) {
         const currentUser = HttpContext.get().req.user;

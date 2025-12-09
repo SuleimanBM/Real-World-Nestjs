@@ -11,11 +11,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             ignoreExpiration: false,
             secretOrKey: process.env.JWT_SECRET as string,
         });
-        //console.log('JwtStrategy initialized ✅');
+      
     }
 
      validate(payload: any) {
-       // console.log("Logging payload from strategy", payload);
         return payload
-    }
+     }
+    
 }

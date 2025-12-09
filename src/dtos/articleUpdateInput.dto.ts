@@ -1,27 +1,28 @@
 import { PartialType } from "@nestjs/mapped-types";
 import { IsNotEmpty, IsNumber, IsOptional } from "class-validator";
 
-export class ArticleDto{
+
+export class Dto{
 
     @IsOptional()
-    slug: string;
+    slug?: string;
 
     @IsNotEmpty()
-    title: string;
+    title?: string;
 
     @IsNotEmpty()
-    description: string;
+    description?: string;
 
     @IsNotEmpty()
-    body: string;
+    body?: string;
 
     @IsOptional()
-    tagList: string[];
+    tagList?: string[];
 
     @IsOptional()
-    favorited: boolean;
+    favorited?: boolean;
+}
 
-    @IsOptional()
-    @IsNumber()
-    favoritesCount: number;
+export class UpdateArticleInput {
+    article: Dto;
 }

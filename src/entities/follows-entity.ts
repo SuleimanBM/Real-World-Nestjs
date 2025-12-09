@@ -4,10 +4,10 @@ import { CustomBaseEntity } from "./base-entities";
 @Entity()
 @Unique({ properties: ['followerId', 'followedId'] })
 export class Follows extends CustomBaseEntity{
-    @Property({type: 'uuid'})
-    followerId: UuidType;
+    @Property()
+    followerId: string;
 
-    @Property({type: 'uuid'})
-    followedId: UuidType;
+    @Property()
+    followedId: string;
 
 }

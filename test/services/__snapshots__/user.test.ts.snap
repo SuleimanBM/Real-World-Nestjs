@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Users test suits Register user 1`] = `
+{
+  "bio": null,
+  "createdAt": 2025-11-05T15:32:41.495Z,
+  "deletedAt": null,
+  "email": "Max.Romaguera52@yopmail.com",
+  "id": "019a54a6-1397-7ce5-8c06-26588fd38ac9",
+  "image": "https://i.pravatar.cc/150",
+  "password": "$2b$10$/XW8WH9lXUgaByOQvl6nauxR1NrwyOStdjBcNDyTgvcdUddymf6pO",
+  "updatedAt": 2025-11-05T15:32:41.495Z,
+  "username": "Harmon",
+}
+`;

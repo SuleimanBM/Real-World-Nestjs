@@ -3,8 +3,8 @@ import { CustomBaseEntity } from "./base-entities";
 
 @Entity()
 export class Favorite extends CustomBaseEntity{
-    @Property({ type: 'uuid', unique: true})
-    user: UuidType;
+    @Property({ type: 'string', unique: true})
+    user: string;
 
     @Property({type: "array", nullable: true})
     favoriteArticles?: string[];

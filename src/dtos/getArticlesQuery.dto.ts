@@ -4,9 +4,8 @@ export class GetArticlesQueryDto {
     author?: string;
 
     tag?: string;
-
-    @Type(() => Boolean)
-    favorited?: boolean;
+    
+    favorited?: string;
 
     @Type(() => Number) 
     limit?: number;

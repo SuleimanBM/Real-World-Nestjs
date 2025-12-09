@@ -1,6 +1,7 @@
-import { EntityManager, FilterQuery, FindOptions, UuidType, wrap } from "@mikro-orm/core";
-import { Injectable, NotFoundException, UseGuards } from "@nestjs/common";
-import { ArticleDto, UpdateArticleInput } from "src/dtos/article.dto";
+import { FilterQuery, FindOptions, UuidType, wrap } from "@mikro-orm/core";
+import { Inject, Injectable, Logger, NotFoundException, UseGuards } from "@nestjs/common";
+import { ArticleDto } from "src/dtos/article.dto";
+import { UpdateArticleInput } from "src/dtos/articleUpdateInput.dto"
 import { Article } from "src/entities/article-entity";
 import { User } from "src/entities/user-entity";
 import { JwtGuard } from "src/guards/jwt.guard";
@@ -9,133 +10,136 @@ import { ProfileService } from "./profile.service";
 import { Follows } from "src/entities/follows-entity";
 import { GetArticlesQueryDto } from "src/dtos/getArticlesQuery.dto";
 import { ArticleInput } from "src/dtos/articleInput";
-import { ApiNoContentResponse } from "@nestjs/swagger";
 import { Favorite } from "src/entities/favourites-entity";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import type { Cache } from "cache-manager"
+import { EntityManager } from "@mikro-orm/postgresql";
+import { populate } from "dotenv";
 
 
 @Injectable()
 export class ArticleService {
     constructor(
         private em: EntityManager,
-        private profileService: ProfileService
+        private profileService: ProfileService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) { }
+    private readonly logger = new Logger(ArticleService.name)
 
     async createArticle(articleInput: ArticleInput) {
         const createArticle = articleInput.article
-        console.log("Logging incoming create article body ", createArticle)
+
         createArticle.slug = createArticle.title.toLowerCase().replace(/\s+/g, '-');
 
         const currentUser = HttpContext.get().req.user;
 
         const author = await this.em.findOne(User, { id: currentUser.id })
-        
+
         if (!author) throw new NotFoundException("User does not exists")
-        
-        const article = this.em.create(Article, { ...createArticle, author})
-        
+
+        const article = this.em.create(Article, { ...createArticle, favoritesCount: 0, author })
+
         await this.em.flush()
         const plainArticle = wrap(article).toObject();
 
-        return {article: {...plainArticle, ...author.toDto()}}
+        return { article: { ...plainArticle, ...author.toDto() } }
     }
 
     async getAllArticles(query: GetArticlesQueryDto) {
-        const { author, tag, favorited, limit, offset } = query;
+        // const cacheKey = `articles:guest:${JSON.stringify(query)}`;
+        // const cached = await this.cacheManager.get(cacheKey);
+        // console.log("guest logging",query)
+        // if (cached) return cached;
+        console.log(query)
+        const { author, tag, limit, offset } = query;
         const filters: FilterQuery<Article> = {};
 
         const options: FindOptions<Article> = {
-            limit: limit,
-            offset: offset,
+            limit,
+            offset,
             orderBy: { createdAt: 'desc' },
-            
         };
 
-        // if (author != null) {
-        //     filters.author = author;
-        // }
-
         if (tag != null) {
-            const tagsArray: string[] = tag.split(',').map(t => t.trim())
+            const tagsArray = tag.split(',').map(t => t.trim());
             filters.tagList = { $contains: tagsArray };
         }
-
-        if (favorited != null) {
-            filters.favorited = favorited;
+        if (author) {
+            filters.author = { username: author };
         }
 
-        let articles = await this.em.find(Article, filters, {
-            ...options,
-            populate: ['author'] as any,
-        })
+        let articles = await this.em.find(Article, filters, options);
 
-        if (author != null) {
-            articles = articles.filter(article => article.author.username === author)
-        }
-        return {articles: articles.map(article => ({
-            slug: article.slug,
-            title: article.title,
-            description: article.description,
-            tagList: article.tagList,
-            createdAt: article.createdAt,
-            updatedAt: article.updatedAt,
-            favorited: article.favorited,
-            favoritesCount: article.favoritesCount,
-            author: article.author.toDto(),
-        })),
-        articlesCount: articles.length,
-        }
+        const response = {
+            articles: articles.map(article => ({
+                slug: article.slug,
+                title: article.title,
+                description: article.description,
+                tagList: article.tagList,
+                createdAt: article.createdAt,
+                updatedAt: article.updatedAt,
+                favorited: false,        // guests never have favorites
+                favoritesCount: article.favoritesCount,
+                author: article.author.toDto(),
+            })),
+            articlesCount: articles.length
+        };
+
+        //await this.cacheManager.set(cacheKey, response);
+        return response;
     }
 
     async getFeedArticles(limit: number, offset: number) {
         const options: FindOptions<Article> = {
-            limit: limit,
-            offset: offset,
+            limit: limit ?? 20,
+            offset: offset ?? 0,
             orderBy: { createdAt: 'desc' },
         };
         const currentUser = HttpContext.get().req.user;
 
-        const isFollowing = await this.em.find(Follows, { followerId: currentUser.id as unknown as UuidType })
-        
-        const followedAuthors = isFollowing.map(f => f.followedId)
+        const followedAuthors = await this.em.find(Follows, { followerId: currentUser.id })
 
-        const feeds = await this.em.find(Article, { author: { id: { $in: followedAuthors.map(id => id.toString()) } } },
+        const followedAuthorsIds = followedAuthors.map(f => f.followedId)
+
+        const feeds = await this.em.find(Article, { author: { id: { $in: followedAuthorsIds.map(id => id.toString()) } } },
             { ...options, populate: ["author"] })
 
         return {
-            articles: feeds, articlesCount: feeds.length,}
+            articles: feeds, articlesCount: feeds.length,
+        }
     }
 
     async getAnArticle(slug: string) {
-        //console.log("Logging slug value ", slug)
-        const article = await this.em.findOne(Article, { slug }, {populate: ["author"] as any})
+        const article = await this.em.findOne(Article, { slug })
         if (!article) throw new NotFoundException("Article does not exist")
-        console.log("Logging article of single article", article)
-        const profile = await this.profileService.fetchProfile(article.author.username)
-        console.log("Logging profile of article author", profile)
-        const plainArticle = wrap(article).toObject()
 
+        const profile = await this.profileService.fetchProfile(article.author.username)
+
+        const plainArticle = wrap(article).toObject()
         return { article: { ...plainArticle, author: profile?.profile } }
     }
 
     async updateArticle(slug: string, updateArticleInput: UpdateArticleInput) {
-        const updateArticleDto = updateArticleInput.article
-        const currentUser = HttpContext.get().req.user;
-        console.log("Logging article to update body", updateArticleDto)
 
-        const article = await this.em.findOne(Article, {author: currentUser.id, slug})
+        const updateArticleDto = updateArticleInput.article
+
+        const currentUser = HttpContext.get().req.user;
+
+        const article = await this.em.findOne(Article, { author: currentUser.id, slug })
 
         if (!article) throw new NotFoundException("Article does not exist")
-        
-        const updatedArticle = this.em.assign(article, updateArticleDto )
+
+        const updatedArticle = this.em.assign(article, updateArticleDto)
+
         await this.em.flush()
 
-        return { article: updatedArticle}
+        return { article: updatedArticle }
     }
 
     async deleteArticle(slug: string) {
         const currentUser = HttpContext.get().req.user;
 
-        const article = await this.em.findOne(Article, {author: currentUser.id, slug })
+        const article = await this.em.findOne(Article, { author: currentUser.id, slug })
 
         if (!article) throw new NotFoundException("Article does not exist")
 
@@ -145,36 +149,70 @@ export class ArticleService {
     async favoriteArticle(slug: string) {
         const currentUser = HttpContext.get().req.user;
 
-        const article = await this.em.findOne(Article, { slug }, { populate: ["author"] as any })
+        const favoritedArticle = await this.em.transactional(async (em) => {
+            const article = await em.findOne(Article, { slug });
 
-        if (!article) throw new NotFoundException()
-        
-        if (currentUser.id == article?.author.id) {
-            article.favoritesCount? article.favoritesCount++ : article.favoritesCount;
-            article.favorited = true;
-            await this.em.flush();
-        }
+            if (!article) throw new NotFoundException();
 
-        article.favoritesCount ? article.favoritesCount++ : article.favoritesCount;
-        let favorite = await this.em.findOne(Favorite, { user: currentUser.id as unknown as UuidType });
+            let favorite = await em.findOne(Favorite, { user: currentUser.id });
 
-        if (!favorite) {
-            favorite = this.em.create(Favorite, {
-                user: currentUser.id as unknown as UuidType,
-                favoriteArticles: [article.id],
-            });
-        } else {
-            // merge with existing ones
-            favorite.favoriteArticles?.push(article.id) 
-        }
-        return { article: article}
+            if (!favorite) {
+                favorite = em.create(Favorite, {
+                    user: currentUser.id,
+                    favoriteArticles: [article.id],
+                });
+                article.favoritesCount++;
+            } else {
+                if (!favorite.favoriteArticles?.includes(article.id)) {
+                    favorite.favoriteArticles = [...favorite.favoriteArticles ?? [], article.id];
+                    article.favoritesCount++;
+                }
+            }
+
+            return article;
+        });
+        favoritedArticle.favorited = true
+        return { article: favoritedArticle }
     }
-    async fetchTags() {
-        const articles = await this.em.findAll(Article)
-        console.log("Logging articles from ", articles)
 
-        const tags = articles.map(article => article.tagList)
-        console.log("Logging tags from ",tags)
-        return {tags: tags.flat()}
+    async unFavoriteArticle(slug: string) {
+        const currentUser = HttpContext.get().req.user;
+
+        const unfavoriteArticle = await this.em.transactional(async (em) => {
+            const article = await em.findOne(Article, { slug })
+
+            if (!article) throw new NotFoundException()
+
+            let favorite = await em.findOne(Favorite, { user: currentUser.id });
+
+            if (favorite && favorite.favoriteArticles?.includes(article.id)) {
+                favorite.favoriteArticles = favorite.favoriteArticles.filter(id => id !== article.id);
+                article.favoritesCount--
+                await this.em.flush()
+            }
+            return article
+        })
+
+        unfavoriteArticle.favorited = false
+
+        return { article: unfavoriteArticle }
+    }
+
+    async fetchTags() {
+        let tags
+        //await this.cacheManager.clear()
+        tags = await this.cacheManager.get('alltags')
+
+        if (tags) {
+            this.logger.log("Returning response from cache")
+            return { tags: tags }
+        }
+
+        const articles = await this.em.findAll(Article)
+
+        tags = articles.map(article => article.tagList)
+
+        // await this.cacheManager.set("alltags", tags)
+        return { tags: tags.flat() }
     }
 }
