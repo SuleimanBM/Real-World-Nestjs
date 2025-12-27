@@ -1,15 +1,15 @@
-import { Type } from "class-transformer"
+import { Type } from 'class-transformer';
 
 export class GetArticlesQueryDto {
-    author?: string;
+  author?: string;
 
-    tag?: string;
-    
-    favorited?: string;
+  tag?: string;
 
-    @Type(() => Number) 
-    limit?: number;
+  favorited?: string;
 
-    @Type(() => Number) 
-    offset?: number;
+  @Type(() => Number)
+  limit?: number;
+
+  @Type(() => Number)
+  offset?: number;
 }

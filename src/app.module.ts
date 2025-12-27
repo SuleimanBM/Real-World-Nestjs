@@ -1,9 +1,10 @@
 import { Module, OnModuleInit, ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { MikroOrmModule } from "@mikro-orm/nestjs"
-import mikroOrmConfig from "./mikro-orm.config"
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import mikroOrmConfig from './mikro-orm.config';
+import { UsersController } from './controllers/users.controller';
 import { UserController } from './controllers/user.controller';
 import { ArticleController } from './controllers/article.controller';
 import { UserService } from './services/user.service';
@@ -19,14 +20,12 @@ import { User } from './entities/user-entity';
 import { CacheModule } from '@nestjs/cache-manager';
 import { GoogleAuthStrategy } from './strategies/googleOauth.strategy';
 import { MikroORM, RequestContext } from '@mikro-orm/core';
-import { UserRepository } from './repositories/user.repository';
-import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler"
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TagsController } from './controllers/tag.controller';
-
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: "./../.env" }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: './../.env' }),
     MikroOrmModule.forRoot(mikroOrmConfig),
     MikroOrmModule.forFeature([User]),
     MikroOrmModule.forMiddleware(),
@@ -34,19 +33,26 @@ import { TagsController } from './controllers/tag.controller';
     RequestContext,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: "24h" }
+      signOptions: { expiresIn: '24h' },
     }),
     CacheModule.register(),
     ThrottlerModule.forRoot({
       throttlers: [
         {
           ttl: 5000,
-          limit: 5
-        }
-      ]
-    })
+          limit: 5,
+        },
+      ],
+    }),
   ],
-  controllers: [AppController, UserController, ArticleController, ProfileController, TagsController],
+  controllers: [
+    AppController,
+    UserController,
+    UsersController,
+    ArticleController,
+    ProfileController,
+    TagsController,
+  ],
   providers: [
     AppService,
     UserService,
@@ -56,20 +62,19 @@ import { TagsController } from './controllers/tag.controller';
     JwtStrategy,
     GoogleAuthStrategy,
     { provide: APP_PIPE, useClass: ValidationPipe },
-    { provide: APP_GUARD, useClass: ThrottlerGuard }
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule implements OnModuleInit {
   constructor(
     private configService: ConfigService,
-    private orm: MikroORM
-  ) { }
+    private orm: MikroORM,
+  ) {}
   async onModuleInit() {
-    const environment = this.configService.getOrThrow("ENV")
-    if (environment !== "DEVELOPMENT") {
-      await this.orm.migrator.up()
-      await this.orm.seeder.seed()
+    const environment = this.configService.getOrThrow('ENV');
+    if (environment !== 'DEVELOPMENT') {
+      await this.orm.migrator.up();
+      await this.orm.seeder.seed();
     }
   }
-
 }

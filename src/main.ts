@@ -12,12 +12,13 @@ async function bootstrap() {
       prefix: 'Logger',
       json: false,
       timestamp: true,
-      logLevels: ['error', 'log']
-    }), });
-  app.enableCors({origin: "*"});
-  app.useGlobalInterceptors(new ResponseInterceptor);
-  app.setGlobalPrefix("api");
-  app.use
+      logLevels: ['error', 'log'],
+    }),
+  });
+  app.enableCors({ origin: '*' });
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.setGlobalPrefix('api');
+  app.use;
 
   const config = new DocumentBuilder()
     .setTitle('Real-World')
@@ -28,7 +29,7 @@ async function bootstrap() {
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
-  
+
   await app.listen(process.env.PORT ?? 5000);
 }
 bootstrap();

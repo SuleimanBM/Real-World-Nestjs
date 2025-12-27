@@ -1,13 +1,11 @@
-import { UuidType } from "@mikro-orm/core";
-import { IsOptional } from "class-validator";
+import { UuidType } from '@mikro-orm/core';
+import { IsOptional } from 'class-validator';
 
 export class CommentDto {
-    @IsOptional()
-    body: string;
-
-    
+  @IsOptional()
+  body: string;
 }
 
 export class CommentInput {
-    comment: CommentDto;
+  comment: CommentDto;
 }

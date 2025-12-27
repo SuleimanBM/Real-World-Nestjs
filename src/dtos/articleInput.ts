@@ -1,24 +1,23 @@
-import { PartialType } from "@nestjs/mapped-types";
-import { IsNotEmpty, IsNumber, IsOptional } from "class-validator";
+import { PartialType } from '@nestjs/mapped-types';
+import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 export class ArticleDto {
-    @IsOptional()
-    slug: string;
-    
-    @IsNotEmpty()
-    title: string;
+  @IsOptional()
+  slug: string;
 
-    @IsNotEmpty()
-    description: string;
+  @IsNotEmpty()
+  title: string;
 
-    @IsNotEmpty()
-    body: string;
+  @IsNotEmpty()
+  description: string;
 
-    @IsOptional()
-    tagList: string[];
+  @IsNotEmpty()
+  body: string;
 
+  @IsOptional()
+  tagList: string[];
 }
 
-export class ArticleInput{
-    article: ArticleDto;
+export class ArticleInput {
+  article: ArticleDto;
 }

@@ -1,3 +1,3 @@
-import { AuthGuard } from "@nestjs/passport";
+import { AuthGuard } from '@nestjs/passport';
 
-export class GoogleOauthGuard extends AuthGuard('google'){}
+export class GoogleOauthGuard extends AuthGuard('google') {}

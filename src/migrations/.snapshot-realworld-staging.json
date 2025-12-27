@@ -1,7 +1,5 @@
 {
-  "namespaces": [
-    "public"
-  ],
+  "namespaces": ["public"],
   "name": "public",
   "tables": [
     {
@@ -59,9 +57,7 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "user"
-          ],
+          "columnNames": ["user"],
           "composite": false,
           "keyName": "favorite_user_unique",
           "constraint": true,
@@ -70,9 +66,7 @@
         },
         {
           "keyName": "favorite_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -140,10 +134,7 @@
       "indexes": [
         {
           "keyName": "follows_follower_id_followed_id_unique",
-          "columnNames": [
-            "follower_id",
-            "followed_id"
-          ],
+          "columnNames": ["follower_id", "followed_id"],
           "composite": true,
           "constraint": true,
           "primary": false,
@@ -151,9 +142,7 @@
         },
         {
           "keyName": "follows_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -262,9 +251,7 @@
       "indexes": [
         {
           "keyName": "user_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -388,9 +375,7 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "slug"
-          ],
+          "columnNames": ["slug"],
           "composite": false,
           "keyName": "article_slug_index",
           "constraint": false,
@@ -398,9 +383,7 @@
           "unique": false
         },
         {
-          "columnNames": [
-            "tag_list"
-          ],
+          "columnNames": ["tag_list"],
           "composite": false,
           "keyName": "article_tag_list_index",
           "constraint": false,
@@ -408,9 +391,7 @@
           "unique": false
         },
         {
-          "columnNames": [
-            "author_id"
-          ],
+          "columnNames": ["author_id"],
           "composite": false,
           "keyName": "article_author_id_index",
           "constraint": false,
@@ -419,9 +400,7 @@
         },
         {
           "keyName": "article_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -432,13 +411,9 @@
       "foreignKeys": {
         "article_author_id_foreign": {
           "constraintName": "article_author_id_foreign",
-          "columnNames": [
-            "author_id"
-          ],
+          "columnNames": ["author_id"],
           "localTableName": "public.article",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user",
           "updateRule": "cascade"
         }
@@ -510,9 +485,7 @@
       "indexes": [
         {
           "keyName": "comment_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -523,25 +496,17 @@
       "foreignKeys": {
         "comment_article_id_foreign": {
           "constraintName": "comment_article_id_foreign",
-          "columnNames": [
-            "article_id"
-          ],
+          "columnNames": ["article_id"],
           "localTableName": "public.comment",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.article",
           "updateRule": "cascade"
         },
         "comment_author_id_foreign": {
           "constraintName": "comment_author_id_foreign",
-          "columnNames": [
-            "author_id"
-          ],
+          "columnNames": ["author_id"],
           "localTableName": "public.comment",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user",
           "updateRule": "cascade"
         }

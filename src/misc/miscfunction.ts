@@ -1,7 +1,5 @@
 export class MiscFunction {
-    
-    public timeConsuming() {
-
-        return "Check metrics before following"
-    }
+  public timeConsuming() {
+    return 'Check metrics before following';
+  }
 }

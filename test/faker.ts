@@ -1,1 +1,1 @@
-export { faker } from '@faker-js/faker/locale/en'
+export { faker } from '@faker-js/faker/locale/en';
